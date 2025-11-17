@@ -3,11 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
 
 interface MessagesModuleProps {
   profile: any;
@@ -15,47 +15,52 @@ interface MessagesModuleProps {
 
 const MessagesModule = ({ profile }: MessagesModuleProps) => {
   const [messages, setMessages] = useState<any[]>([]);
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [selectedContact, setSelectedContact] = useState<any>(null);
   const [newMessage, setNewMessage] = useState("");
 
   useEffect(() => {
     if (profile) {
-      fetchContacts();
       fetchMessages();
+      
+      // Subscribe to real-time updates
+      const channel = supabase
+        .channel('public-messages')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'public_messages'
+          },
+          () => fetchMessages()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [profile]);
-
-  const fetchContacts = async () => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .neq("id", profile.id);
-    setContacts(data || []);
-  };
 
   const fetchMessages = async () => {
     if (!profile) return;
     
     const { data } = await supabase
-      .from("messages")
+      .from("public_messages")
       .select(`
         *,
-        sender:profiles!messages_sender_id_fkey(*),
-        receiver:profiles!messages_receiver_id_fkey(*)
+        sender:profiles!public_messages_sender_id_fkey(*)
       `)
-      .or(`sender_id.eq.${profile.id},receiver_id.eq.${profile.id}`)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: false })
+      .limit(100);
     
     setMessages(data || []);
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedContact) return;
+    if (!newMessage.trim()) return;
 
-    const { error } = await supabase.from("messages").insert({
+    const { error } = await supabase.from("public_messages").insert({
       sender_id: profile.id,
-      receiver_id: selectedContact.id,
       content: newMessage,
     });
 
@@ -63,18 +68,8 @@ const MessagesModule = ({ profile }: MessagesModuleProps) => {
       toast.error("Failed to send message");
     } else {
       setNewMessage("");
-      fetchMessages();
       toast.success("Message sent!");
     }
-  };
-
-  const getConversationMessages = () => {
-    if (!selectedContact) return [];
-    return messages.filter(
-      (m) =>
-        (m.sender_id === profile.id && m.receiver_id === selectedContact.id) ||
-        (m.sender_id === selectedContact.id && m.receiver_id === profile.id)
-    );
   };
 
   const getInitials = (name: string) => {
@@ -88,112 +83,78 @@ const MessagesModule = ({ profile }: MessagesModuleProps) => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold text-foreground">Messages</h2>
-        <p className="text-muted-foreground mt-2">Connect with your peers</p>
+        <h2 className="text-3xl font-bold text-foreground">Public Message Board</h2>
+        <p className="text-muted-foreground mt-2">Share updates and connect with everyone</p>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Contacts List */}
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Contacts</CardTitle>
-            <CardDescription>Select a contact to message</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[600px]">
-              {contacts.map((contact) => (
-                <button
-                  key={contact.id}
-                  onClick={() => setSelectedContact(contact)}
-                  className={`w-full p-4 flex items-center gap-3 hover:bg-muted transition-colors border-b ${
-                    selectedContact?.id === contact.id ? "bg-muted" : ""
-                  }`}
+      <Card>
+        <CardHeader>
+          <CardTitle>Post a Message</CardTitle>
+          <CardDescription>Your message will be visible to all users</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Textarea
+              placeholder="What's on your mind?"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="min-h-[80px]"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+            />
+            <Button onClick={sendMessage} className="self-end">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Messages</CardTitle>
+          <CardDescription>Latest messages from the community</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[600px] pr-4">
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className="flex gap-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                 >
-                  <Avatar>
-                    <AvatarImage src={contact.avatar_url} />
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={message.sender?.avatar_url} />
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      {getInitials(contact.name)}
+                      {getInitials(message.sender?.name || "Unknown")}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="text-left flex-1">
-                    <p className="font-medium text-sm">{contact.name}</p>
-                    <p className="text-xs text-muted-foreground">{contact.usn}</p>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-sm">{message.sender?.name || "Unknown"}</p>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <p className="text-xs text-muted-foreground">{message.sender?.usn}</p>
+                      <span className="text-xs text-muted-foreground">•</span>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(message.created_at), "MMM d, yyyy 'at' h:mm a")}
+                      </p>
+                    </div>
+                    <p className="text-sm text-foreground whitespace-pre-wrap">{message.content}</p>
                   </div>
-                </button>
+                </div>
               ))}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        {/* Chat Area */}
-        <Card className="col-span-8">
-          {selectedContact ? (
-            <>
-              <CardHeader className="border-b">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src={selectedContact.avatar_url} />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {getInitials(selectedContact.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">{selectedContact.name}</CardTitle>
-                    <CardDescription>{selectedContact.usn}</CardDescription>
-                  </div>
+              {messages.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No messages yet. Be the first to post!</p>
                 </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="h-[500px] p-6">
-                  <div className="space-y-4">
-                    {getConversationMessages().map((message) => {
-                      const isSender = message.sender_id === profile.id;
-                      return (
-                        <div
-                          key={message.id}
-                          className={`flex ${isSender ? "justify-end" : "justify-start"}`}
-                        >
-                          <div
-                            className={`max-w-[70%] rounded-lg p-3 ${
-                              isSender
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-foreground"
-                            }`}
-                          >
-                            <p className="text-sm">{message.content}</p>
-                            <p
-                              className={`text-xs mt-1 ${
-                                isSender ? "text-primary-foreground/70" : "text-muted-foreground"
-                              }`}
-                            >
-                              {format(new Date(message.created_at), "p")}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-                <div className="p-4 border-t flex gap-2">
-                  <Input
-                    placeholder="Type a message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                  />
-                  <Button onClick={sendMessage}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </>
-          ) : (
-            <CardContent className="h-[600px] flex items-center justify-center">
-              <p className="text-muted-foreground">Select a contact to start messaging</p>
-            </CardContent>
-          )}
-        </Card>
-      </div>
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 };
