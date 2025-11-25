@@ -81,11 +81,11 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex flex-col md:flex-row h-screen bg-background overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
-        <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-bold text-foreground">Campus Connect</h1>
+      <aside className="w-full md:w-64 bg-card border-r border-border flex flex-col md:h-screen overflow-y-auto">
+        <div className="p-4 md:p-6 border-b border-border">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">Campus Connect</h1>
           {profile && (
             <div className="mt-4">
               <p className="text-sm font-medium text-foreground">{profile.name}</p>
@@ -93,42 +93,44 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        <nav className="flex-1 p-4 space-y-2">
-          {modules.map((module) => {
-            const Icon = module.icon;
-            return (
-              <button
-                key={module.id}
-                onClick={() => setActiveModule(module.id as ModuleType)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  activeModule === module.id
-                    ? `bg-gradient-to-r ${module.color} text-white shadow-lg`
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-sm font-medium">{module.label}</span>
-              </button>
-            );
-          })}
+        <nav className="flex-1 p-2 md:p-4 space-y-2 overflow-x-auto">
+          <div className="flex md:flex-col gap-2 min-w-max md:min-w-0">
+            {modules.map((module) => {
+              const Icon = module.icon;
+              return (
+                <button
+                  key={module.id}
+                  onClick={() => setActiveModule(module.id as ModuleType)}
+                  className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg transition-all whitespace-nowrap ${
+                    activeModule === module.id
+                      ? `bg-gradient-to-r ${module.color} text-white shadow-lg`
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Icon className="h-4 md:h-5 w-4 md:w-5 flex-shrink-0" />
+                  <span className="text-xs md:text-sm font-medium">{module.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </nav>
-        <div className="p-4 border-t border-border space-y-2">
+        <div className="p-2 md:p-4 border-t border-border space-y-2">
           {isAdmin && (
-            <Button variant="default" className="w-full" onClick={() => navigate("/admin")}>
-              <Shield className="mr-2 h-4 w-4" />
+            <Button variant="default" className="w-full text-xs md:text-sm" onClick={() => navigate("/admin")}>
+              <Shield className="mr-2 h-3 md:h-4 w-3 md:w-4" />
               Admin Panel
             </Button>
           )}
-          <Button variant="outline" className="w-full" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
+          <Button variant="outline" className="w-full text-xs md:text-sm" onClick={handleLogout}>
+            <LogOut className="mr-2 h-3 md:h-4 w-3 md:w-4" />
             Logout
           </Button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
+      <main className="flex-1 overflow-auto w-full">
+        <div className="p-4 md:p-8 max-w-full">
           {activeModule === "placements" && <PlacementsModule />}
           {activeModule === "events" && <EventsModule />}
           {activeModule === "alumni" && <AlumniModule />}

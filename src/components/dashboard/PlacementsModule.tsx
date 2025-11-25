@@ -51,7 +51,7 @@ const PlacementsModule = () => {
           <p className="text-muted-foreground mt-2">Access resources to ace your placement interviews</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {categories.map((category) => {
             const Icon = category.icon;
             const categoryResources = getResourcesByCategory(category.id);
@@ -84,7 +84,7 @@ const PlacementsModule = () => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] md:max-w-3xl max-h-[85vh] md:max-h-[80vh] overflow-y-auto overflow-x-hidden w-full mx-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               {selectedCategoryData && (
@@ -103,11 +103,11 @@ const PlacementsModule = () => {
           <div className="space-y-4 mt-4">
             {selectedResources.length > 0 ? (
               selectedResources.map((resource) => (
-                <Card key={resource.id} className="border">
-                  <CardHeader>
-                    <CardTitle className="text-base">{resource.title}</CardTitle>
+                <Card key={resource.id} className="border w-full overflow-hidden">
+                  <CardHeader className="w-full">
+                    <CardTitle className="text-base break-words">{resource.title}</CardTitle>
                     {resource.description && (
-                      <CardDescription className="whitespace-pre-wrap break-words">
+                      <CardDescription className="whitespace-pre-wrap break-words overflow-wrap-anywhere w-full">
                         {resource.description}
                       </CardDescription>
                     )}
