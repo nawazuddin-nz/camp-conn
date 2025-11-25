@@ -103,11 +103,11 @@ const PlacementsModule = () => {
           <div className="space-y-4 mt-4">
             {selectedResources.length > 0 ? (
               selectedResources.map((resource) => (
-                <Card key={resource.id} className="border w-full overflow-hidden">
-                  <CardHeader className="w-full">
-                    <CardTitle className="text-base break-words">{resource.title}</CardTitle>
+                <Card key={resource.id} className="border w-full">
+                  <CardHeader className="w-full space-y-2">
+                    <CardTitle className="text-base break-words leading-relaxed">{resource.title}</CardTitle>
                     {resource.description && (
-                      <CardDescription className="whitespace-pre-wrap break-words overflow-wrap-anywhere w-full">
+                      <CardDescription className="whitespace-normal break-words leading-relaxed text-sm" style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
                         {resource.description}
                       </CardDescription>
                     )}
