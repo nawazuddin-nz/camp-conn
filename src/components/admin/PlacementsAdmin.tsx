@@ -17,7 +17,7 @@ const PlacementsAdmin = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "Technical",
+    category: "reasoning",
     content: "",
     link: "",
   });
@@ -97,7 +97,7 @@ const PlacementsAdmin = () => {
     setFormData({
       title: "",
       description: "",
-      category: "Technical",
+      category: "reasoning",
       content: "",
       link: "",
     });
@@ -143,10 +143,11 @@ const PlacementsAdmin = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Technical">Technical</SelectItem>
-                  <SelectItem value="Aptitude">Aptitude</SelectItem>
-                  <SelectItem value="HR">HR</SelectItem>
-                  <SelectItem value="Coding">Coding</SelectItem>
+                  <SelectItem value="reasoning">Reasoning</SelectItem>
+                  <SelectItem value="verbal">Verbal</SelectItem>
+                  <SelectItem value="quantitative">Quantitative</SelectItem>
+                  <SelectItem value="mock_interviews">Mock Interviews</SelectItem>
+                  <SelectItem value="study_materials">Study Materials</SelectItem>
                 </SelectContent>
               </Select>
             </div>

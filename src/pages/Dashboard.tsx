@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { LogOut, BookOpen, Calendar, Users, Bell, FileText, MessageSquare } from "lucide-react";
+import { LogOut, BookOpen, Calendar, Users, Bell, FileText, MessageSquare, Shield } from "lucide-react";
 import { toast } from "sonner";
 import PlacementsModule from "@/components/dashboard/PlacementsModule";
 import EventsModule from "@/components/dashboard/EventsModule";
@@ -18,6 +18,7 @@ const Dashboard = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [activeModule, setActiveModule] = useState<ModuleType>("placements");
   const [profile, setProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,6 +52,13 @@ const Dashboard = () => {
       .eq("id", userId)
       .single();
     setProfile(data);
+
+    // Check if user has admin role
+    const { data: hasAdminRole } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    setIsAdmin(hasAdminRole || false);
   };
 
   const handleLogout = async () => {
@@ -104,7 +112,13 @@ const Dashboard = () => {
             );
           })}
         </nav>
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-2">
+          {isAdmin && (
+            <Button variant="default" className="w-full" onClick={() => navigate("/admin")}>
+              <Shield className="mr-2 h-4 w-4" />
+              Admin Panel
+            </Button>
+          )}
           <Button variant="outline" className="w-full" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
