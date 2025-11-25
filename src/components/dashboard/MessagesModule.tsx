@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,6 +69,20 @@ const MessagesModule = ({ profile }: MessagesModuleProps) => {
     } else {
       setNewMessage("");
       toast.success("Message sent!");
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    const { error } = await supabase
+      .from("public_messages")
+      .delete()
+      .eq("id", messageId);
+
+    if (error) {
+      toast.error("Failed to delete message");
+    } else {
+      toast.success("Message deleted");
+      fetchMessages();
     }
   };
 
@@ -144,6 +158,16 @@ const MessagesModule = ({ profile }: MessagesModuleProps) => {
                     </div>
                     <p className="text-sm text-foreground whitespace-pre-wrap">{message.content}</p>
                   </div>
+                  {message.sender_id === profile.id && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMessage(message.id)}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
               {messages.length === 0 && (
