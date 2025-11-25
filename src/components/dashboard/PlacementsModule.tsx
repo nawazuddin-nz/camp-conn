@@ -107,31 +107,23 @@ const PlacementsModule = () => {
                   <CardHeader>
                     <CardTitle className="text-base">{resource.title}</CardTitle>
                     {resource.description && (
-                      <CardDescription className="whitespace-pre-wrap">
-                        {resource.description.slice(0, 300)}
-                        {resource.description.length > 300 && "..."}
+                      <CardDescription className="whitespace-pre-wrap break-words">
+                        {resource.description}
                       </CardDescription>
                     )}
                   </CardHeader>
-                  {(resource.content || resource.link) && (
-                    <CardContent className="space-y-3">
-                      {resource.content && (
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
-                          {resource.content}
-                        </p>
-                      )}
-                      {resource.link && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a
-                            href={resource.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            View Resource
-                          </a>
-                        </Button>
-                      )}
+                  {resource.link && (
+                    <CardContent>
+                      <Button variant="outline" size="sm" asChild>
+                        <a
+                          href={resource.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View Resource
+                        </a>
+                      </Button>
                     </CardContent>
                   )}
                 </Card>
