@@ -116,7 +116,7 @@ const PlacementsModule = () => {
                   {(resource.content || resource.link) && (
                     <CardContent className="space-y-3">
                       {resource.content && (
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                           {resource.content}
                         </p>
                       )}

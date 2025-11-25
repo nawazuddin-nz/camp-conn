@@ -152,21 +152,29 @@ const PlacementsAdmin = () => {
               </Select>
             </div>
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description (Max 300 characters)</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                maxLength={300}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                {formData.description.length}/300 characters
+              </p>
             </div>
             <div>
-              <Label htmlFor="content">Content</Label>
+              <Label htmlFor="content">Content (Max 400 characters)</Label>
               <Textarea
                 id="content"
                 value={formData.content}
                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                 rows={5}
+                maxLength={400}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                {formData.content.length}/400 characters
+              </p>
             </div>
             <div>
               <Label htmlFor="link">External Link (Optional)</Label>
