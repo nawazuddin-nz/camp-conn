@@ -104,16 +104,18 @@ const PlacementsModule = () => {
             {selectedResources.length > 0 ? (
               selectedResources.map((resource) => (
                 <Card key={resource.id} className="border w-full">
-                  <CardHeader className="w-full space-y-2">
+                  <CardHeader className="w-full space-y-3">
                     <CardTitle className="text-base break-words leading-relaxed">{resource.title}</CardTitle>
                     {resource.description && (
-                      <CardDescription className="whitespace-normal break-words leading-relaxed text-sm" style={{ wordWrap: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
-                        {resource.description}
-                      </CardDescription>
+                      <div className="text-sm text-muted-foreground leading-relaxed">
+                        <p className="break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>
+                          {resource.description}
+                        </p>
+                      </div>
                     )}
                   </CardHeader>
                   {resource.link && (
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <Button variant="outline" size="sm" asChild>
                         <a
                           href={resource.link}
