@@ -107,7 +107,10 @@ const PlacementsModule = () => {
                   <CardHeader>
                     <CardTitle className="text-base">{resource.title}</CardTitle>
                     {resource.description && (
-                      <CardDescription>{resource.description}</CardDescription>
+                      <CardDescription className="whitespace-pre-wrap">
+                        {resource.description.slice(0, 300)}
+                        {resource.description.length > 300 && "..."}
+                      </CardDescription>
                     )}
                   </CardHeader>
                   {(resource.content || resource.link) && (
