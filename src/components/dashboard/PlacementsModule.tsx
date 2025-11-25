@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Brain, MessageCircle, FileText, Target } from "lucide-react";
+import { BookOpen, Brain, MessageCircle, FileText, Target, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const PlacementsModule = () => {
   const [resources, setResources] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchResources();
@@ -31,59 +35,113 @@ const PlacementsModule = () => {
     return resources.filter((r) => r.category === category);
   };
 
+  const handleCategoryClick = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setIsDialogOpen(true);
+  };
+
+  const selectedCategoryData = categories.find((c) => c.id === selectedCategory);
+  const selectedResources = selectedCategory ? getResourcesByCategory(selectedCategory) : [];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground">Placements Preparation</h2>
-        <p className="text-muted-foreground mt-2">Access resources to ace your placement interviews</p>
+    <>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground">Placements Preparation</h2>
+          <p className="text-muted-foreground mt-2">Access resources to ace your placement interviews</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const categoryResources = getResourcesByCategory(category.id);
+            return (
+              <Card 
+                key={category.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer h-[180px] flex flex-col"
+                onClick={() => handleCategoryClick(category.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-3 rounded-lg ${category.color}`}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <CardTitle>{category.label}</CardTitle>
+                      <CardDescription>{categoryResources.length} resources</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">
+                    {categoryResources.length > 0 ? "Click to view all resources" : "No resources yet"}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.map((category) => {
-          const Icon = category.icon;
-          const categoryResources = getResourcesByCategory(category.id);
-          return (
-            <Card key={category.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className={`p-3 rounded-lg ${category.color}`}>
-                    <Icon className="h-6 w-6" />
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {selectedCategoryData && (
+                <>
+                  <div className={`p-2 rounded-lg ${selectedCategoryData.color}`}>
+                    {selectedCategoryData.icon && <selectedCategoryData.icon className="h-5 w-5" />}
                   </div>
-                  <div>
-                    <CardTitle>{category.label}</CardTitle>
-                    <CardDescription>{categoryResources.length} resources</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {categoryResources.length > 0 ? (
-                  categoryResources.slice(0, 3).map((resource) => (
-                    <div key={resource.id} className="p-3 bg-muted rounded-lg">
-                      <h4 className="font-medium text-sm text-foreground">{resource.title}</h4>
-                      {resource.description && (
-                        <p className="text-xs text-muted-foreground mt-1">{resource.description}</p>
+                  <span>{selectedCategoryData.label}</span>
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedResources.length} resource{selectedResources.length !== 1 ? "s" : ""} available
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {selectedResources.length > 0 ? (
+              selectedResources.map((resource) => (
+                <Card key={resource.id} className="border">
+                  <CardHeader>
+                    <CardTitle className="text-base">{resource.title}</CardTitle>
+                    {resource.description && (
+                      <CardDescription>{resource.description}</CardDescription>
+                    )}
+                  </CardHeader>
+                  {(resource.content || resource.link) && (
+                    <CardContent className="space-y-3">
+                      {resource.content && (
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {resource.content}
+                        </p>
                       )}
                       {resource.link && (
-                        <a
-                          href={resource.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline mt-2 inline-block"
-                        >
-                          View Resource →
-                        </a>
+                        <Button variant="outline" size="sm" asChild>
+                          <a
+                            href={resource.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            View Resource
+                          </a>
+                        </Button>
                       )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">No resources yet</p>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+                    </CardContent>
+                  )}
+                </Card>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground">No resources available in this category yet</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
